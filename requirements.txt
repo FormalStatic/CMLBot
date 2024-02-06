@@ -1,7 +1,4 @@
-discord
-py-cord
-json 
-pytz 
-datetime 
 pyperclip 
-python-dotenv
+py-cord
+pytz 
+requests

@@ -1,14 +1,14 @@
 import json
 from dotenv import dotenv_values
 import datetime
-import pytz
+import pytz 
 
 import pyperclip
+from discord.commands import Option
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import MissingPermissions, has_permissions
 import discord.utils
-from discord.commands.options import Option 
 
 
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
