@@ -4,4 +4,4 @@ json
 pytz 
 datetime 
 pyperclip 
-dotenv
+python-dotenv
