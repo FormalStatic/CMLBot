@@ -2,8 +2,6 @@ import json
 from dotenv import dotenv_values
 import datetime
 import pytz
-from dateutil import tz
-import calendar
 
 import pyperclip
 import discord

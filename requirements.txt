@@ -1,3 +1,7 @@
 discord
 py-cord
-multi_elo
+json 
+pytz 
+datetime 
+pyperclip 
+dotenv
