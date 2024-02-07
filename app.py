@@ -3,7 +3,7 @@ from dotenv import dotenv_values
 import datetime
 import pytz 
 
-import pyperclip
+import clipboard
 from discord.commands import Option
 import discord
 from discord.ext import commands, tasks
@@ -48,6 +48,54 @@ def calculate_elo(elo, placement, min_elo, max_elo):
 
     return new_elo
 
+
+def standard_to_military(hour, minute, period):
+    """
+    Convert standard time to military time.
+    
+    Args:
+    hour (int): Hour in standard format (12-hour clock).
+    minute (int): Minute.
+    second (int): Second.
+    period (str): Time of day period (AM or PM).
+    
+    Returns:
+    tuple: Tuple containing hour, minute, and second in military format.
+    """
+    if period == "PM" and hour != 12:
+        hour += 12
+    elif period == "AM" and hour == 12:
+        hour = 0
+
+    return hour, minute
+
+def military_to_standard(time_str):
+    """
+    Convert military time to standard time.
+    
+    Args:
+    time_str (str): Time string in military format (e.g., "2024-06-26 13:30").
+    
+    Returns:
+    str: Time string in standard format with year, month, day (e.g., "2024-06-26 1:30 PM").
+    """
+    time_obj = datetime.datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+    year = time_obj.year
+    month = time_obj.month
+    day = time_obj.day
+    hour = time_obj.hour
+    minute = time_obj.minute
+    
+    if hour < 12:
+        period = "AM"
+        if hour == 0:
+            hour = 12
+    else:
+        period = "PM"
+        if hour != 12:
+            hour -= 12
+
+    return "{:d}-{:02d}-{:02d} {:d}:{:02d} {}".format(year, month, day, hour, minute, period)
 
 
 @has_permissions(administrator=True)
@@ -166,7 +214,7 @@ async def timeouterror(ctx, error):
 # Command to ping the bot
 @bot.command(description="ping the bot")
 async def ping(ctx):
-    await ctx.respond("pong!")
+    await ctx.respond("pong!", ephemeral=True)
 
 
 
@@ -232,7 +280,7 @@ class ScheduleCog(commands.Cog):
                     color=discord.Color.green()
                     )
                     
-                    await channel.send("@everyone", embed=embed)
+                    await channel.send("<@1190738155956080780>", embed=embed)
 
 # Add the cog to the bot
 bot.add_cog(ScheduleCog(bot))
@@ -246,17 +294,17 @@ async def schedule_help(ctx, month: Option(str, choices=months, required=True, d
                     hour:Option(int, min_value=1, max_value=12, required=True, description="Hour"),
                     minute: Option(int, min_value=0, max_value=59, required=True, description="Minute"),
                     td: Option(str, choices=["AM", "PM"], required=True, description="Time of Day")):
-    if td == "PM":
-        hour += 12
+
+    hour, minute = standard_to_military(hour=hour, minute=minute, period=td)
 
     month = [i for i,x in enumerate(months) if x == month]
 
-    clip = discord.ui.Button(label="Copy! (PC)", style=discord.ButtonStyle.green, emoji="📋")
+    #clip = discord.ui.Button(label="Copy! (PC)", style=discord.ButtonStyle.green, emoji="📋")
     mobile = discord.ui.Button(label="Mobile Mode", style=discord.ButtonStyle.green, emoji="📱")
 
 
     view = discord.ui.View()
-    view.add_item(clip)
+    #view.add_item(clip)
     view.add_item(mobile)
 
 
@@ -267,14 +315,14 @@ async def schedule_help(ctx, month: Option(str, choices=months, required=True, d
     )
     await ctx.respond(embed=embed, view=view, ephemeral=True)
 
-    async def copy(interaction):
-        pyperclip.copy(f'{year}-{month[0]+1}-{day} {hour}:{minute}')
-        await interaction.response.send_message('Copied!', ephemeral=True)
+    #async def copy(interaction):
+        #clipboard.copy(f'{year}-{month[0]+1}-{day} {hour}:{minute}')
+        #await interaction.response.send_message('Copied!', ephemeral=True)
     
     async def copy_mobile(interaction):
         await interaction.response.send_message(f'{year}-{month[0]+1}-{day} {hour}:{minute}', ephemeral=True)
 
-    clip.callback = copy
+    #clip.callback = copy
     mobile.callback = copy_mobile
 
 @bot.command(pass_context=True, description="Add an event!")
@@ -382,7 +430,7 @@ async def events(ctx):
         await ctx.respond(embed=embed, ephemeral=True)
         return
 
-    event_list = "\n\n".join([f"**{event['name']}**\n{event['time']} {event['timezone']}" for event in events])
+    event_list = "\n\n".join([f"**{event['name']}**\n{military_to_standard(event['time'])} {event['timezone']}" for event in events])
     embed = discord.Embed(
     title=f"Upcoming Events!",
     description=event_list,
